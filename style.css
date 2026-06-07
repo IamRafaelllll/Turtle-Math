@@ -532,48 +532,40 @@ body {
 /* END SCREEN */
 .end-scene {
   position: absolute;
-  width: 520px;
-  left: 70px;
-  top: 150px;
+  width: 560px;
+  left: 85px;
+  top: 145px;
   z-index: 2;
-}
-
-.end-turtle {
-  position: absolute;
-  width: 170px;
-  left: 405px;
-  top: 235px;
-  z-index: 4;
 }
 
 .end-panel {
   position: absolute;
   right: 55px;
-  top: 115px;
+  top: 95px;
   width: 390px;
   text-align: center;
   z-index: 5;
 }
 
 .end-panel h1 {
-  font-size: 42px;
+  font-size: 40px;
   margin: 0 0 8px;
   line-height: 1.05;
 }
 
 .end-panel p {
-  font-size: 15px;
+  font-size: 14px;
   margin: 6px 0;
 }
 
 .summary {
   background: #c9f0c2;
   border-radius: 18px;
-  padding: 16px 18px 10px;
-  margin: 18px 0;
+  padding: 14px 18px 10px;
+  margin: 16px 0;
   box-shadow: 0 4px 5px rgba(0, 0, 0, 0.15);
   text-align: left;
-  max-height: 250px;
+  height: 300px;
   overflow-y: auto;
 }
 
@@ -581,27 +573,27 @@ body {
   display: block;
   text-align: center;
   font-size: 18px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .summary p {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
-  margin: 9px 0 12px;
-  line-height: 1.25;
+  margin: 8px 0 10px;
+  line-height: 1.2;
 }
 
 .note {
-  font-size: 14px;
-  line-height: 1.25;
-  margin: 12px 0 16px;
+  font-size: 13px;
+  line-height: 1.2;
+  margin: 10px 0 14px;
 }
 
 .play-again {
   border: 2px solid #8b63c7;
   background: #dffaff;
   border-radius: 25px;
-  padding: 12px 34px;
+  padding: 10px 32px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 15px;
 }
