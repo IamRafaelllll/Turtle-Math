@@ -1,462 +1,607 @@
-const game = document.getElementById("game");
-const titleScreen = document.getElementById("titleScreen");
-const playScreen = document.getElementById("playScreen");
-const endScreen = document.getElementById("endScreen");
-
-const sceneArt = document.getElementById("sceneArt");
-const cards = document.getElementById("cards");
-const keypad = document.getElementById("keypad");
-const submitBtn = document.getElementById("submitBtn");
-
-const overlay = document.getElementById("overlay");
-const welcomePopup = document.getElementById("welcomePopup");
-const correctPopup = document.getElementById("correctPopup");
-const errorPopup = document.getElementById("errorPopup");
-const setCompletePopup = document.getElementById("setCompletePopup");
-
-const errorMessage = document.getElementById("errorMessage");
-const pondProgress = document.getElementById("pondProgress");
-const setLine1 = document.getElementById("setLine1");
-const setLine2 = document.getElementById("setLine2");
-
-const correctA = document.getElementById("correctA");
-const correctB = document.getElementById("correctB");
-const correctTarget = document.getElementById("correctTarget");
-
-const sceneList = [
-  "images/scene1.png",
-  "images/scene2.png",
-  "images/scene3.png",
-  "images/scene3.png",
-  "images/scene5.png"
-];
-
-const TOTAL_SETS = 4;
-
-let currentSet = 0;
-let phase = 1;
-let selected = null;
-let targetNumber = 10;
-let usedTargets = [];
-
-let currentAnswers = [
-  { a: null, b: null },
-  { a: null, b: null }
-];
-
-let firstSolution = null;
-let allSets = [];
-
-function fitGame() {
-  const scale = Math.min(window.innerWidth / 1024, window.innerHeight / 650, 1);
-  game.style.setProperty("--scale", scale);
+* {
+  box-sizing: border-box;
 }
 
-window.addEventListener("resize", fitGame);
-fitGame();
-
-function randomTarget() {
-  const possibleTargets = [5, 6, 7, 8, 9, 10, 11, 12];
-  const available = possibleTargets.filter(num => !usedTargets.includes(num));
-  const chosen = available[Math.floor(Math.random() * available.length)];
-  usedTargets.push(chosen);
-  return chosen;
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  background: #333;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
-function showOnly(screen) {
-  titleScreen.classList.remove("active");
-  playScreen.classList.remove("active");
-  endScreen.classList.remove("active");
-  screen.classList.add("active");
+#game {
+  width: 1024px;
+  height: 650px;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(120deg, #ffffff 0%, #dffcff 45%, #adf8ff 100%);
+  transform: scale(var(--scale, 1));
+  transform-origin: center center;
 }
 
-function closeOverlay() {
-  overlay.classList.add("hidden");
-  welcomePopup.classList.add("hidden");
-  correctPopup.classList.add("hidden");
-  errorPopup.classList.add("hidden");
-  setCompletePopup.classList.add("hidden");
+.screen {
+  display: none;
+  position: absolute;
+  inset: 0;
 }
 
-function goTitle() {
-  closeOverlay();
-  keypad.classList.add("hidden");
-  showOnly(titleScreen);
+.screen.active {
+  display: block;
 }
 
-function resetCurrentSet() {
-  phase = 1;
-  selected = null;
-  firstSolution = null;
-  targetNumber = randomTarget();
-
-  currentAnswers = [
-    { a: null, b: null },
-    { a: null, b: null }
-  ];
+.hidden {
+  display: none !important;
 }
 
-function restart(showWelcome = true) {
-  currentSet = 0;
-  allSets = [];
-  usedTargets = [];
-  resetCurrentSet();
-
-  sceneArt.src = sceneList[0];
-  renderCards();
-  updatePondProgress();
-
-  closeOverlay();
-  keypad.classList.add("hidden");
-  showOnly(playScreen);
-
-  if (showWelcome) showWelcomePopup();
+/* DECOR */
+.bg-decor {
+  position: absolute;
+  color: rgba(255, 255, 255, 0.65);
+  font-weight: 900;
+  user-select: none;
+  pointer-events: none;
+  z-index: 1;
 }
 
-document.getElementById("startGame").addEventListener("click", () => {
-  restart(true);
-});
-
-function updatePondProgress() {
-  const left = TOTAL_SETS - currentSet;
-  pondProgress.textContent = left === 1
-    ? "1 set left to get to the pond!"
-    : `${left} sets left to get to the pond!`;
+.plus {
+  font-size: 86px;
 }
 
-function showWelcomePopup() {
-  overlay.classList.remove("hidden");
-  welcomePopup.classList.remove("hidden");
-  correctPopup.classList.add("hidden");
-  errorPopup.classList.add("hidden");
-  setCompletePopup.classList.add("hidden");
+.equals {
+  font-size: 62px;
 }
 
-function showCorrectPopup(a, b) {
-  correctA.textContent = a;
-  correctB.textContent = b;
-  correctTarget.textContent = targetNumber;
-
-  overlay.classList.remove("hidden");
-  welcomePopup.classList.add("hidden");
-  correctPopup.classList.remove("hidden");
-  errorPopup.classList.add("hidden");
-  setCompletePopup.classList.add("hidden");
+.plus-a {
+  left: 50px;
+  top: 410px;
+  transform: rotate(-28deg);
 }
 
-function showErrorPopup(message) {
-  errorMessage.textContent = message;
-
-  overlay.classList.remove("hidden");
-  welcomePopup.classList.add("hidden");
-  correctPopup.classList.add("hidden");
-  errorPopup.classList.remove("hidden");
-  setCompletePopup.classList.add("hidden");
+.plus-b {
+  right: 70px;
+  bottom: 105px;
+  transform: rotate(18deg);
+  font-size: 100px;
 }
 
-function showSetCompletePopup(first, second) {
-  setLine1.textContent = `${first.a} + ${first.b} = ${targetNumber}`;
-  setLine2.textContent = `${second.a} + ${second.b} = ${targetNumber}`;
-
-  overlay.classList.remove("hidden");
-  welcomePopup.classList.add("hidden");
-  correctPopup.classList.add("hidden");
-  errorPopup.classList.add("hidden");
-  setCompletePopup.classList.remove("hidden");
+.plus-c {
+  right: 210px;
+  top: 130px;
+  transform: rotate(-15deg);
+  font-size: 58px;
+  opacity: 0.45;
 }
 
-function startSecondEquation() {
-  closeOverlay();
-  phase = 2;
-  selected = null;
-  currentAnswers[1] = { a: null, b: null };
-  renderCards();
+.plus-d {
+  left: 320px;
+  top: 150px;
+  transform: rotate(22deg);
+  font-size: 54px;
+  opacity: 0.38;
 }
 
-function advanceAfterFullSet(secondSolution) {
-  const completedSet = {
-    target: targetNumber,
-    first: { ...firstSolution },
-    second: { ...secondSolution }
-  };
-
-  allSets.push(completedSet);
-  currentSet += 1;
-
-  if (currentSet >= TOTAL_SETS) {
-    showEndScreen();
-    return;
-  }
-
-  showSetCompletePopup(completedSet.first, completedSet.second);
+.eq-a {
+  left: 90px;
+  top: 500px;
 }
 
-function continueToNextSet() {
-  closeOverlay();
-  resetCurrentSet();
-
-  sceneArt.src = sceneList[currentSet];
-  renderCards();
-  updatePondProgress();
+.eq-b {
+  right: 120px;
+  top: 485px;
+  opacity: 0.45;
 }
 
-function showEndScreen() {
-  closeOverlay();
-  showOnly(endScreen);
-
-  const summary = document.querySelector(".summary");
-  summary.innerHTML = `<b>summary:</b>`;
-
-  allSets.forEach((set, index) => {
-    const line = document.createElement("p");
-    line.innerHTML = `
-      <strong>Set ${index + 1} — Goal: ${set.target}</strong>
-      <br>
-      ${set.first.a} + ${set.first.b} = ${set.target}
-      <br>
-      ${set.second.a} + ${set.second.b} = ${set.target}
-    `;
-    summary.appendChild(line);
-  });
+/* START SCREEN */
+.title-wrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
-function renderCards() {
-  cards.innerHTML = "";
-  cards.className = phase === 1 ? "cards one-card" : "cards two-cards";
-
-  if (phase === 2 && firstSolution) {
-    cards.appendChild(makeCard(firstSolution, true, -1));
-  }
-
-  const liveIndex = phase === 1 ? 0 : 1;
-  cards.appendChild(makeCard(currentAnswers[liveIndex], false, liveIndex));
+.title-turtle {
+  width: 270px;
+  margin-bottom: 8px;
 }
 
-function makeCard(values, locked, answerIndex) {
-  const card = document.createElement("div");
-  card.className = "math-card";
-
-  if (locked) card.classList.add("solved");
-
-  card.innerHTML = `
-    <div class="eq">
-      <button class="num-box input" data-answer="${answerIndex}" data-slot="a">${values.a ?? "#"}</button>
-      <span>+</span>
-      <button class="num-box input" data-answer="${answerIndex}" data-slot="b">${values.b ?? "#"}</button>
-      <span>=</span>
-      <span class="target">${targetNumber}</span>
-    </div>
-    <div class="bar"></div>
-  `;
-
-  const bar = card.querySelector(".bar");
-  paintBar(bar, values.a, values.b);
-
-  if (locked) {
-    card.querySelectorAll(".input").forEach(btn => btn.disabled = true);
-  } else {
-    card.querySelectorAll(".input").forEach(btn => {
-      btn.addEventListener("click", event => {
-        event.stopPropagation();
-
-        selected = {
-          answerIndex: Number(btn.dataset.answer),
-          slot: btn.dataset.slot,
-          button: btn
-        };
-
-        positionKeypad(btn);
-        keypad.classList.remove("hidden");
-      });
-    });
-  }
-
-  return card;
+.title-wrap h1 {
+  margin: 0 0 26px;
+  font-size: 48px;
+  font-weight: 900;
+  color: #000;
+  text-shadow:
+    -3px -3px 0 white,
+    3px -3px 0 white,
+    -3px 3px 0 white,
+    3px 3px 0 white,
+    0 4px 4px rgba(0, 0, 0, 0.25);
 }
 
-function positionKeypad(button) {
-  const gameRect = game.getBoundingClientRect();
-  const btnRect = button.getBoundingClientRect();
-  const scale = Number(getComputedStyle(game).getPropertyValue("--scale")) || 1;
-
-  let x = (btnRect.left - gameRect.left) / scale - 110;
-  let y = (btnRect.top - gameRect.top) / scale + 35;
-
-  x = Math.max(20, Math.min(860, x));
-  y = Math.max(100, Math.min(470, y));
-
-  keypad.style.left = `${x}px`;
-  keypad.style.top = `${y}px`;
+.play-now {
+  border: 3px solid #8b63c7;
+  background: #dffaff;
+  border-radius: 30px;
+  padding: 13px 44px;
+  font-size: 24px;
+  font-weight: 900;
+  color: white;
+  text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000;
+  cursor: pointer;
 }
 
-document.querySelectorAll(".key-hit").forEach(key => {
-  key.addEventListener("click", event => {
-    event.stopPropagation();
-
-    if (!selected) return;
-
-    const num = Number(key.dataset.num);
-    currentAnswers[selected.answerIndex][selected.slot] = num;
-    selected.button.textContent = num;
-
-    keypad.classList.add("hidden");
-    rerenderBarsOnly();
-  });
-});
-
-document.addEventListener("click", event => {
-  if (!keypad.classList.contains("hidden") && !keypad.contains(event.target)) {
-    keypad.classList.add("hidden");
-  }
-});
-
-function rerenderBarsOnly() {
-  const cardEls = [...document.querySelectorAll(".math-card")];
-
-  if (phase === 1) {
-    paintBar(cardEls[0].querySelector(".bar"), currentAnswers[0].a, currentAnswers[0].b);
-  } else {
-    paintBar(cardEls[0].querySelector(".bar"), firstSolution.a, firstSolution.b);
-    paintBar(cardEls[1].querySelector(".bar"), currentAnswers[1].a, currentAnswers[1].b);
-  }
+/* GAME SCREEN */
+.back-btn {
+  position: absolute;
+  left: 22px;
+  top: 20px;
+  z-index: 5;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid #8b63c7;
+  background: white;
+  color: black;
+  font-size: 28px;
+  line-height: 18px;
+  cursor: pointer;
 }
 
-function paintBar(bar, a, b) {
-  bar.innerHTML = "";
-  bar.style.width = "320px";
-
-  const first = Number.isInteger(a) ? a : 0;
-  const second = Number.isInteger(b) ? b : 0;
-  const total = first + second;
-
-  const maxBlocks = targetNumber;
-  const firstBlocks = Math.min(first, maxBlocks);
-  const secondBlocks = Math.min(second, Math.max(maxBlocks - firstBlocks, 0));
-  const emptyBlocks = Math.max(maxBlocks - firstBlocks - secondBlocks, 0);
-  const overflowBlocks = Math.max(total - maxBlocks, 0);
-
-  const blockWidth = 320 / maxBlocks;
-
-  function addBlock(colorClass) {
-    const block = document.createElement("div");
-    block.className = `block ${colorClass}`;
-    block.style.width = `${blockWidth}px`;
-    bar.appendChild(block);
-  }
-
-  for (let i = 0; i < firstBlocks; i++) addBlock("green");
-  for (let i = 0; i < secondBlocks; i++) addBlock("brown");
-  for (let i = 0; i < emptyBlocks; i++) addBlock("empty");
-  for (let i = 0; i < overflowBlocks; i++) addBlock("red");
-
-  if (overflowBlocks > 0) {
-    bar.style.width = `${320 + overflowBlocks * blockWidth}px`;
-  }
+.game-title {
+  position: absolute;
+  top: 28px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  margin: 0;
+  z-index: 3;
+  font-size: 28px;
+  font-weight: 900;
+  color: #111;
+  text-shadow:
+    -2px -2px 0 white,
+    2px -2px 0 white,
+    -2px 2px 0 white,
+    2px 2px 0 white;
 }
 
-function clearErrors() {
-  document.querySelectorAll(".math-card").forEach(card => {
-    card.classList.remove("error");
-  });
+.scene-art {
+  position: absolute;
+  width: 735px;
+  left: 145px;
+  top: 92px;
+  z-index: 2;
+  pointer-events: none;
+  object-fit: contain;
 }
 
-function markCurrentCardError() {
-  const cardEls = [...document.querySelectorAll(".math-card")];
-  const currentCard = cardEls[cardEls.length - 1];
-  if (currentCard) currentCard.classList.add("error");
+.pond-progress {
+  position: absolute;
+  right: 70px;
+  top: 262px;
+  width: 315px;
+  text-align: center;
+  z-index: 5;
+  font-size: 17px;
+  font-weight: 900;
+  color: #111;
+  text-shadow:
+    -2px -2px 0 white,
+    2px -2px 0 white,
+    -2px 2px 0 white,
+    2px 2px 0 white;
 }
 
-function isSameEquation(one, two) {
-  return one.a === two.a && one.b === two.b;
+.cards {
+  position: absolute;
+  left: 265px;
+  width: 440px;
+  z-index: 4;
 }
 
-submitBtn.addEventListener("click", () => {
-  keypad.classList.add("hidden");
-  clearErrors();
+.cards.one-card {
+  top: 305px;
+}
 
-  const answerIndex = phase === 1 ? 0 : 1;
-  const current = currentAnswers[answerIndex];
+.cards.two-cards {
+  top: 222px;
+}
 
-  if (current.a === null || current.b === null) {
-    markCurrentCardError();
-    showErrorPopup("You need to complete BOTH numbers to complete the problem.");
-    return;
-  }
+.math-card {
+  width: 440px;
+  height: 138px;
+  margin-bottom: 15px;
+  position: relative;
+  background: #79d982;
+  border-radius: 18px;
+  box-shadow: 0 7px 6px rgba(0, 0, 0, 0.25);
+  border: 0;
+  overflow: visible;
+}
 
-  const sum = current.a + current.b;
+.math-card.solved {
+  border: 4px solid #00c91a;
+}
 
-  if (sum < targetNumber) {
-    markCurrentCardError();
-    showErrorPopup("Your solution is UNDER the sum!");
-    return;
-  }
+.math-card.error {
+  border: 4px solid red;
+}
 
-  if (sum > targetNumber) {
-    markCurrentCardError();
-    showErrorPopup("Your solution goes OVER the sum!");
-    return;
-  }
+.eq {
+  position: absolute;
+  top: 25px;
+  left: 48px;
+  right: 48px;
+  display: grid;
+  grid-template-columns: 54px 38px 54px 38px 72px;
+  align-items: center;
+  justify-items: center;
+  font-size: 30px;
+  font-weight: 900;
+}
 
-  if (phase === 1) {
-    firstSolution = { ...current };
-    showCorrectPopup(current.a, current.b);
-    return;
-  }
+.num-box {
+  width: 52px;
+  height: 44px;
+  border-radius: 6px;
+  border: 0;
+  background: white;
+  font-size: 28px;
+  font-weight: 900;
+  color: black;
+  cursor: pointer;
+}
 
-  if (isSameEquation(current, firstSolution)) {
-    markCurrentCardError();
-    showErrorPopup("Your second equation must be DIFFERENT from the first one.");
-    return;
-  }
+.num-box:disabled {
+  cursor: default;
+  opacity: 1;
+}
 
-  advanceAfterFullSet(current);
-});
+.bar {
+  position: absolute;
+  left: 60px;
+  bottom: 26px;
+  width: 320px;
+  height: 30px;
+  display: flex;
+  border: 3px solid black;
+  border-radius: 7px;
+  overflow: hidden;
+  background: #d8c8b4;
+}
 
-overlay.addEventListener("click", event => {
-  if (event.target === overlay) {
-    if (!correctPopup.classList.contains("hidden")) {
-      startSecondEquation();
-    } else if (!setCompletePopup.classList.contains("hidden")) {
-      continueToNextSet();
-    } else {
-      closeOverlay();
-    }
-  }
-});
+.block {
+  height: 100%;
+  border-right: 2px solid black;
+  flex-shrink: 0;
+}
 
-document.querySelectorAll(".popup").forEach(popup => {
-  popup.addEventListener("click", event => event.stopPropagation());
-});
+.block:last-child {
+  border-right: 0;
+}
 
-document.querySelectorAll(".x").forEach(button => {
-  button.addEventListener("click", event => {
-    event.stopPropagation();
+.block.green {
+  background: #2b7e21;
+}
 
-    if (!correctPopup.classList.contains("hidden")) {
-      startSecondEquation();
-    } else if (!setCompletePopup.classList.contains("hidden")) {
-      continueToNextSet();
-    } else {
-      closeOverlay();
-    }
-  });
-});
+.block.brown {
+  background: #8b5a32;
+}
 
-document.getElementById("welcomeStart").addEventListener("click", event => {
-  event.stopPropagation();
-  closeOverlay();
-});
+.block.empty {
+  background: #d8c8b4;
+}
 
-document.getElementById("correctStart").addEventListener("click", event => {
-  event.stopPropagation();
-  startSecondEquation();
-});
+.block.red {
+  background: #ff1d17;
+}
 
-document.getElementById("continueSet").addEventListener("click", event => {
-  event.stopPropagation();
-  continueToNextSet();
-});
+.submit {
+  position: absolute;
+  left: 765px;
+  top: 372px;
+  z-index: 20;
+  width: 110px;
+  height: 50px;
+  border: 0;
+  border-radius: 16px;
+  background: #3d92cc;
+  color: white;
+  font-size: 18px;
+  font-weight: 900;
+  text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000;
+  box-shadow: 0 4px 0 #8e6bb1;
+  cursor: pointer;
+}
 
-window.addEventListener("keydown", event => {
-  if (event.key === "Escape") closeOverlay();
-});
+/* KEYPAD */
+.keypad {
+  position: absolute;
+  left: 80px;
+  top: 330px;
+  width: 120px;
+  z-index: 80;
+}
+
+.keypad img {
+  width: 120px;
+  display: block;
+  pointer-events: none;
+}
+
+.key-hit {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.key-hit[data-num="1"] { left: 20px; top: 17px; }
+.key-hit[data-num="2"] { left: 55px; top: 17px; }
+.key-hit[data-num="3"] { left: 88px; top: 17px; }
+
+.key-hit[data-num="4"] { left: 20px; top: 55px; }
+.key-hit[data-num="5"] { left: 55px; top: 55px; }
+.key-hit[data-num="6"] { left: 88px; top: 55px; }
+
+.key-hit[data-num="7"] { left: 20px; top: 93px; }
+.key-hit[data-num="8"] { left: 55px; top: 93px; }
+.key-hit[data-num="9"] { left: 88px; top: 93px; }
+
+.key-hit.zero {
+  left: 55px;
+  top: 132px;
+}
+
+/* POPUPS */
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.48);
+  display: grid;
+  place-items: center;
+}
+
+.popup {
+  position: relative;
+  cursor: default;
+  z-index: 110;
+}
+
+.x {
+  position: absolute;
+  top: 20px;
+  right: 26px;
+  width: 43px;
+  height: 43px;
+  border: 3px solid #8b63c7;
+  border-radius: 50%;
+  background: transparent;
+  font-size: 30px;
+  line-height: 34px;
+  cursor: pointer;
+}
+
+.welcome,
+.correct,
+.set-complete {
+  width: 760px;
+  min-height: 430px;
+  border-radius: 30px;
+  background: linear-gradient(180deg, #81df87 0%, #f1fff5 100%);
+  box-shadow: 0 8px 0 rgba(0, 0, 0, 0.25);
+  text-align: center;
+  padding: 48px 70px 34px;
+}
+
+.welcome h1,
+.correct h1,
+.set-complete h1 {
+  margin: 0 0 24px;
+  font-size: 54px;
+  color: black;
+  text-shadow:
+    -4px -4px 0 white,
+    4px -4px 0 white,
+    -4px 4px 0 white,
+    4px 4px 0 white;
+}
+
+.welcome p,
+.welcome li {
+  font-size: 18px;
+  text-align: left;
+}
+
+.welcome ol {
+  width: 540px;
+  margin: 18px auto 26px;
+}
+
+.correct-equation {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 45px;
+  font-size: 54px;
+  margin-bottom: 30px;
+}
+
+.white-num {
+  background: white;
+  border-radius: 8px;
+  width: 78px;
+  height: 68px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.correct p,
+.set-complete p {
+  font-size: 22px;
+  line-height: 1.15;
+  margin: 0 auto 34px;
+  max-width: 650px;
+}
+
+.set-summary {
+  background: #c9f0c2;
+  border-radius: 18px;
+  padding: 18px;
+  margin: 22px auto;
+  width: 430px;
+  box-shadow: 0 4px 5px rgba(0, 0, 0, 0.15);
+}
+
+.set-summary p {
+  font-size: 28px;
+  font-weight: 900;
+  margin: 8px 0;
+}
+
+.popup-btn {
+  border: 3px solid #8b63c7;
+  background: #dffaff;
+  border-radius: 28px;
+  padding: 13px 38px;
+  min-width: 250px;
+  font-size: 21px;
+  font-weight: 900;
+  color: white;
+  text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000;
+  cursor: pointer;
+}
+
+.error-box {
+  width: 560px;
+  min-height: 260px;
+  border-radius: 90px 35px 90px 0;
+  background: linear-gradient(135deg, #e9ffff, #83e1d1);
+  box-shadow: 0 8px 0 rgba(0, 0, 0, 0.25);
+  border: 3px solid #a2c4db;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 45px 55px 35px 25px;
+}
+
+.error-box img {
+  width: 180px;
+  margin-left: -70px;
+}
+
+.error-box h1 {
+  margin: 0 0 18px;
+  font-size: 58px;
+  color: black;
+  text-shadow:
+    -4px -4px 0 white,
+    4px -4px 0 white,
+    -4px 4px 0 white,
+    4px 4px 0 white;
+}
+
+.error-box p {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.1;
+}
+
+/* END SCREEN */
+.end-scene {
+  position: absolute;
+  width: 520px;
+  left: 70px;
+  top: 150px;
+  z-index: 2;
+}
+
+.end-turtle {
+  position: absolute;
+  width: 170px;
+  left: 405px;
+  top: 235px;
+  z-index: 4;
+}
+
+.end-panel {
+  position: absolute;
+  right: 55px;
+  top: 115px;
+  width: 390px;
+  text-align: center;
+  z-index: 5;
+}
+
+.end-panel h1 {
+  font-size: 42px;
+  margin: 0 0 8px;
+  line-height: 1.05;
+}
+
+.end-panel p {
+  font-size: 15px;
+  margin: 6px 0;
+}
+
+.summary {
+  background: #c9f0c2;
+  border-radius: 18px;
+  padding: 16px 18px 10px;
+  margin: 18px 0;
+  box-shadow: 0 4px 5px rgba(0, 0, 0, 0.15);
+  text-align: left;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.summary b {
+  display: block;
+  text-align: center;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.summary p {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 9px 0 12px;
+  line-height: 1.25;
+}
+
+.note {
+  font-size: 14px;
+  line-height: 1.25;
+  margin: 12px 0 16px;
+}
+
+.play-again {
+  border: 2px solid #8b63c7;
+  background: #dffaff;
+  border-radius: 25px;
+  padding: 12px 34px;
+  cursor: pointer;
+  font-size: 16px;
+}
