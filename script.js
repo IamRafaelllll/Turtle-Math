@@ -25,13 +25,12 @@ const correctTarget = document.getElementById("correctTarget");
 
 const sceneList = [
   "images/scene1.png",
-  "images/scene1.png",
   "images/scene2.png",
   "images/scene3.png",
   "images/scene5.png"
 ];
 
-const TOTAL_SETS = 4;
+const TOTAL_SETS = 3;
 
 let currentSet = 0;
 let phase = 1;
