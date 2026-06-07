@@ -38,7 +38,7 @@ body {
   display: none !important;
 }
 
-/* BACKGROUND DECOR */
+/* DECOR */
 .bg-decor {
   position: absolute;
   color: rgba(255, 255, 255, 0.65);
@@ -63,25 +63,25 @@ body {
 }
 
 .plus-b {
-  right: 80px;
+  right: 70px;
   bottom: 105px;
   transform: rotate(18deg);
-  font-size: 92px;
+  font-size: 100px;
 }
 
 .plus-c {
   right: 210px;
   top: 130px;
   transform: rotate(-15deg);
-  font-size: 56px;
+  font-size: 58px;
   opacity: 0.45;
 }
 
 .plus-d {
-  left: 315px;
-  top: 145px;
+  left: 320px;
+  top: 150px;
   transform: rotate(22deg);
-  font-size: 52px;
+  font-size: 54px;
   opacity: 0.38;
 }
 
@@ -91,12 +91,12 @@ body {
 }
 
 .eq-b {
-  right: 115px;
+  right: 120px;
   top: 485px;
   opacity: 0.45;
 }
 
-/* TITLE SCREEN */
+/* START */
 .title-wrap {
   position: absolute;
   inset: 0;
@@ -107,7 +107,7 @@ body {
 }
 
 .title-turtle {
-  width: 260px;
+  width: 270px;
   margin-bottom: 8px;
 }
 
@@ -140,7 +140,7 @@ body {
   cursor: pointer;
 }
 
-/* GAME SCREEN */
+/* GAME */
 .back-btn {
   position: absolute;
   left: 22px;
