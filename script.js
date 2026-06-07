@@ -189,19 +189,28 @@ function advanceAfterFullSet(secondSolution) {
   allSets.push(completedSet);
   currentSet += 1;
 
+  // Move turtle immediately after completing the set
+  sceneArt.src = sceneList[currentSet];
+
+  // If all 4 sets are done, go to the final screen
   if (currentSet >= TOTAL_SETS) {
     showEndScreen();
     return;
   }
 
+  // Otherwise show the summary popup before the next set
   showSetCompletePopup(completedSet.first, completedSet.second);
 }
 
 function continueToNextSet() {
   closeOverlay();
-  resetCurrentSet();
 
-  sceneArt.src = sceneList[currentSet];
+  if (currentSet >= TOTAL_SETS) {
+    showEndScreen();
+    return;
+  }
+
+  resetCurrentSet();
   renderCards();
   updatePondProgress();
 }
