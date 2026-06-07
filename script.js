@@ -296,18 +296,18 @@ function paintBar(bar, a, b) {
   const emptyCount = Math.max(10 - firstWithinTen - secondWithinTen, 0);
   const overflowCount = Math.max(first + second - 10, 0);
 
-  // first number = brown
+  // first number = green
   for (let i = 0; i < firstWithinTen; i++) {
-    const block = document.createElement("div");
-    block.className = "block brown";
-    bar.appendChild(block);
-  }
+  const block = document.createElement("div");
+  block.className = "block green";
+  bar.appendChild(block);
+}
 
-  // second number = green
-  for (let i = 0; i < secondWithinTen; i++) {
-    const block = document.createElement("div");
-    block.className = "block green";
-    bar.appendChild(block);
+  // second number = dark brown
+ for (let i = 0; i < secondWithinTen; i++) {
+  const block = document.createElement("div");
+  block.className = "block brown";
+  bar.appendChild(block);
   }
 
   // remaining empty slots
