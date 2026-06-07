@@ -324,7 +324,7 @@ function rerenderBarsOnly() {
 
 function paintBar(bar, a, b) {
   bar.innerHTML = "";
-  bar.style.width = "340px";
+  bar.style.width = "320px";
 
   const first = Number.isInteger(a) ? a : 0;
   const second = Number.isInteger(b) ? b : 0;
@@ -336,7 +336,7 @@ function paintBar(bar, a, b) {
   const emptyBlocks = Math.max(maxBlocks - firstBlocks - secondBlocks, 0);
   const overflowBlocks = Math.max(total - maxBlocks, 0);
 
-  const blockWidth = 340 / maxBlocks;
+  const blockWidth = 320 / maxBlocks;
 
   function addBlock(colorClass) {
     const block = document.createElement("div");
@@ -351,7 +351,7 @@ function paintBar(bar, a, b) {
   for (let i = 0; i < overflowBlocks; i++) addBlock("red");
 
   if (overflowBlocks > 0) {
-    bar.style.width = `${340 + overflowBlocks * blockWidth}px`;
+    bar.style.width = `${320 + overflowBlocks * blockWidth}px`;
   }
 }
 
