@@ -27,7 +27,7 @@ const sceneList = [
   "images/scene1.png",
   "images/scene2.png",
   "images/scene3.png",
-  "images/scene3.png",
+  "images/scene4.png",
   "images/scene5.png"
 ];
 
@@ -100,6 +100,7 @@ function restart(showWelcome = true) {
   currentSet = 0;
   allSets = [];
   usedTargets = [];
+
   resetCurrentSet();
 
   sceneArt.src = sceneList[0];
@@ -110,7 +111,9 @@ function restart(showWelcome = true) {
   keypad.classList.add("hidden");
   showOnly(playScreen);
 
-  if (showWelcome) showWelcomePopup();
+  if (showWelcome) {
+    showWelcomePopup();
+  }
 }
 
 document.getElementById("startGame").addEventListener("click", () => {
@@ -119,9 +122,12 @@ document.getElementById("startGame").addEventListener("click", () => {
 
 function updatePondProgress() {
   const left = TOTAL_SETS - currentSet;
-  pondProgress.textContent = left === 1
-    ? "1 set left to get to the pond!"
-    : `${left} sets left to get to the pond!`;
+
+  if (left === 1) {
+    pondProgress.textContent = "1 set left to get to the pond!";
+  } else {
+    pondProgress.textContent = `${left} sets left to get to the pond!`;
+  }
 }
 
 function showWelcomePopup() {
@@ -236,7 +242,9 @@ function makeCard(values, locked, answerIndex) {
   const card = document.createElement("div");
   card.className = "math-card";
 
-  if (locked) card.classList.add("solved");
+  if (locked) {
+    card.classList.add("solved");
+  }
 
   card.innerHTML = `
     <div class="eq">
@@ -253,7 +261,9 @@ function makeCard(values, locked, answerIndex) {
   paintBar(bar, values.a, values.b);
 
   if (locked) {
-    card.querySelectorAll(".input").forEach(btn => btn.disabled = true);
+    card.querySelectorAll(".input").forEach(btn => {
+      btn.disabled = true;
+    });
   } else {
     card.querySelectorAll(".input").forEach(btn => {
       btn.addEventListener("click", event => {
@@ -363,7 +373,10 @@ function clearErrors() {
 function markCurrentCardError() {
   const cardEls = [...document.querySelectorAll(".math-card")];
   const currentCard = cardEls[cardEls.length - 1];
-  if (currentCard) currentCard.classList.add("error");
+
+  if (currentCard) {
+    currentCard.classList.add("error");
+  }
 }
 
 function isSameEquation(one, two) {
@@ -425,7 +438,9 @@ overlay.addEventListener("click", event => {
 });
 
 document.querySelectorAll(".popup").forEach(popup => {
-  popup.addEventListener("click", event => event.stopPropagation());
+  popup.addEventListener("click", event => {
+    event.stopPropagation();
+  });
 });
 
 document.querySelectorAll(".x").forEach(button => {
@@ -458,5 +473,7 @@ document.getElementById("continueSet").addEventListener("click", event => {
 });
 
 window.addEventListener("keydown", event => {
-  if (event.key === "Escape") closeOverlay();
+  if (event.key === "Escape") {
+    closeOverlay();
+  }
 });
