@@ -14,29 +14,28 @@ const correctPopup = document.getElementById("correctPopup");
 const errorPopup = document.getElementById("errorPopup");
 const errorMessage = document.getElementById("errorMessage");
 
+const setCompletePopup = document.getElementById("setCompletePopup");
+const pondProgress = document.getElementById("pondProgress");
+const setLine1 = document.getElementById("setLine1");
+const setLine2 = document.getElementById("setLine2");
+
 const correctA = document.getElementById("correctA");
 const correctB = document.getElementById("correctB");
+const correctTarget = document.getElementById("correctTarget");
 
 const sceneList = [
   "images/scene1.png",
   "images/scene2.png",
   "images/scene3.png",
-  "images/scene4.png",
   "images/scene5.png"
 ];
 
-/*
-  scene1 = start
-  solve 2 equations -> move to scene2
-  solve 2 equations -> move to scene3
-  solve 2 equations -> move to scene4
-  solve 2 equations -> move to scene5 / pond
-*/
-const TOTAL_SETS = sceneList.length - 1;
+const TOTAL_SETS = 3;
 
-let currentSet = 0; // how many full sets have been completed
-let phase = 1;      // 1 = first equation, 2 = second equation
+let currentSet = 0;
+let phase = 1;
 let selected = null;
+let targetNumber = 10;
 
 let currentAnswers = [
   { a: null, b: null },
@@ -54,6 +53,10 @@ function fitGame() {
 window.addEventListener("resize", fitGame);
 fitGame();
 
+function randomTarget() {
+  return Math.floor(Math.random() * 8) + 5;
+}
+
 function showOnly(screen) {
   titleScreen.classList.remove("active");
   playScreen.classList.remove("active");
@@ -66,6 +69,7 @@ function closeOverlay() {
   welcomePopup.classList.add("hidden");
   correctPopup.classList.add("hidden");
   errorPopup.classList.add("hidden");
+  setCompletePopup.classList.add("hidden");
 }
 
 function goTitle() {
@@ -78,6 +82,8 @@ function resetCurrentSet() {
   phase = 1;
   selected = null;
   firstSolution = null;
+  targetNumber = randomTarget();
+
   currentAnswers = [
     { a: null, b: null },
     { a: null, b: null }
@@ -91,6 +97,7 @@ function restart(showWelcome = true) {
 
   sceneArt.src = sceneList[0];
   renderCards();
+  updatePondProgress();
   closeOverlay();
   keypad.classList.add("hidden");
   showOnly(playScreen);
@@ -104,21 +111,34 @@ document.getElementById("startGame").addEventListener("click", () => {
   restart(true);
 });
 
+function updatePondProgress() {
+  const left = TOTAL_SETS - currentSet;
+
+  if (left === 1) {
+    pondProgress.textContent = "1 set left to get to the pond!";
+  } else {
+    pondProgress.textContent = `${left} sets left to get to the pond!`;
+  }
+}
+
 function showWelcomePopup() {
   overlay.classList.remove("hidden");
   welcomePopup.classList.remove("hidden");
   correctPopup.classList.add("hidden");
   errorPopup.classList.add("hidden");
+  setCompletePopup.classList.add("hidden");
 }
 
 function showCorrectPopup(a, b) {
   correctA.textContent = a;
   correctB.textContent = b;
+  correctTarget.textContent = targetNumber;
 
   overlay.classList.remove("hidden");
   welcomePopup.classList.add("hidden");
   correctPopup.classList.remove("hidden");
   errorPopup.classList.add("hidden");
+  setCompletePopup.classList.add("hidden");
 }
 
 function showErrorPopup(message) {
@@ -128,6 +148,18 @@ function showErrorPopup(message) {
   welcomePopup.classList.add("hidden");
   correctPopup.classList.add("hidden");
   errorPopup.classList.remove("hidden");
+  setCompletePopup.classList.add("hidden");
+}
+
+function showSetCompletePopup(first, second) {
+  setLine1.textContent = `${first.a} + ${first.b} = ${targetNumber}`;
+  setLine2.textContent = `${second.a} + ${second.b} = ${targetNumber}`;
+
+  overlay.classList.remove("hidden");
+  welcomePopup.classList.add("hidden");
+  correctPopup.classList.add("hidden");
+  errorPopup.classList.add("hidden");
+  setCompletePopup.classList.remove("hidden");
 }
 
 function startSecondEquation() {
@@ -139,11 +171,13 @@ function startSecondEquation() {
 }
 
 function advanceAfterFullSet(secondSolution) {
-  allSets.push({
+  const completedSet = {
+    target: targetNumber,
     first: { ...firstSolution },
     second: { ...secondSolution }
-  });
+  };
 
+  allSets.push(completedSet);
   currentSet += 1;
 
   if (currentSet >= TOTAL_SETS) {
@@ -151,9 +185,16 @@ function advanceAfterFullSet(secondSolution) {
     return;
   }
 
+  showSetCompletePopup(completedSet.first, completedSet.second);
+}
+
+function continueToNextSet() {
+  closeOverlay();
   resetCurrentSet();
+
   sceneArt.src = sceneList[currentSet];
   renderCards();
+  updatePondProgress();
 }
 
 function showEndScreen() {
@@ -165,7 +206,12 @@ function showEndScreen() {
 
   allSets.forEach((set, index) => {
     const line = document.createElement("p");
-    line.innerHTML = `Set ${index + 1}: ${set.first.a} + ${set.first.b} = 10 &nbsp;&nbsp;and&nbsp;&nbsp; ${set.second.a} + ${set.second.b} = 10`;
+    line.innerHTML = `
+      Set ${index + 1}: 
+      ${set.first.a} + ${set.first.b} = ${set.target}
+      <br>
+      ${set.second.a} + ${set.second.b} = ${set.target}
+    `;
     summary.appendChild(line);
   });
 }
@@ -196,7 +242,7 @@ function makeCard(values, locked, answerIndex) {
       <span>+</span>
       <button class="num-box input" data-answer="${answerIndex}" data-slot="b">${values.b ?? "#"}</button>
       <span>=</span>
-      <span class="target">10</span>
+      <span class="target">${targetNumber}</span>
     </div>
     <div class="bar"></div>
   `;
@@ -210,7 +256,7 @@ function makeCard(values, locked, answerIndex) {
     });
   } else {
     card.querySelectorAll(".input").forEach(btn => {
-      btn.addEventListener("click", (event) => {
+      btn.addEventListener("click", event => {
         event.stopPropagation();
 
         selected = {
@@ -244,7 +290,7 @@ function positionKeypad(button) {
 }
 
 document.querySelectorAll(".key-hit").forEach(key => {
-  key.addEventListener("click", (event) => {
+  key.addEventListener("click", event => {
     event.stopPropagation();
 
     if (!selected) return;
@@ -258,7 +304,7 @@ document.querySelectorAll(".key-hit").forEach(key => {
   });
 });
 
-document.addEventListener("click", (event) => {
+document.addEventListener("click", event => {
   if (!keypad.classList.contains("hidden") && !keypad.contains(event.target)) {
     keypad.classList.add("hidden");
   }
@@ -268,18 +314,10 @@ function rerenderBarsOnly() {
   const cardEls = [...document.querySelectorAll(".math-card")];
 
   if (phase === 1) {
-    const bar = cardEls[0].querySelector(".bar");
-    paintBar(bar, currentAnswers[0].a, currentAnswers[0].b);
+    paintBar(cardEls[0].querySelector(".bar"), currentAnswers[0].a, currentAnswers[0].b);
   } else {
-    if (cardEls[0]) {
-      const solvedBar = cardEls[0].querySelector(".bar");
-      paintBar(solvedBar, firstSolution.a, firstSolution.b);
-    }
-
-    if (cardEls[1]) {
-      const liveBar = cardEls[1].querySelector(".bar");
-      paintBar(liveBar, currentAnswers[1].a, currentAnswers[1].b);
-    }
+    paintBar(cardEls[0].querySelector(".bar"), firstSolution.a, firstSolution.b);
+    paintBar(cardEls[1].querySelector(".bar"), currentAnswers[1].a, currentAnswers[1].b);
   }
 }
 
@@ -289,43 +327,30 @@ function paintBar(bar, a, b) {
 
   const first = Number.isInteger(a) ? a : 0;
   const second = Number.isInteger(b) ? b : 0;
+  const total = first + second;
 
-  const firstWithinTen = Math.min(first, 10);
-  const remainingAfterFirst = Math.max(10 - firstWithinTen, 0);
-  const secondWithinTen = Math.min(second, remainingAfterFirst);
-  const emptyCount = Math.max(10 - firstWithinTen - secondWithinTen, 0);
-  const overflowCount = Math.max(first + second - 10, 0);
+  const maxBlocks = targetNumber;
+  const firstBlocks = Math.min(first, maxBlocks);
+  const secondBlocks = Math.min(second, Math.max(maxBlocks - firstBlocks, 0));
+  const emptyBlocks = Math.max(maxBlocks - firstBlocks - secondBlocks, 0);
+  const overflowBlocks = Math.max(total - maxBlocks, 0);
 
-  // first number = green
-  for (let i = 0; i < firstWithinTen; i++) {
-  const block = document.createElement("div");
-  block.className = "block green";
-  bar.appendChild(block);
-}
+  const blockWidth = 340 / maxBlocks;
 
-  // second number = dark brown
- for (let i = 0; i < secondWithinTen; i++) {
-  const block = document.createElement("div");
-  block.className = "block brown";
-  bar.appendChild(block);
-  }
-
-  // remaining empty slots
-  for (let i = 0; i < emptyCount; i++) {
+  function addBlock(colorClass) {
     const block = document.createElement("div");
-    block.className = "block empty";
+    block.className = `block ${colorClass}`;
+    block.style.width = `${blockWidth}px`;
     bar.appendChild(block);
   }
 
-  // overflow blocks
-  for (let i = 0; i < overflowCount; i++) {
-    const block = document.createElement("div");
-    block.className = "block red";
-    bar.appendChild(block);
-  }
+  for (let i = 0; i < firstBlocks; i++) addBlock("green");
+  for (let i = 0; i < secondBlocks; i++) addBlock("brown");
+  for (let i = 0; i < emptyBlocks; i++) addBlock("empty");
+  for (let i = 0; i < overflowBlocks; i++) addBlock("red");
 
-  if (overflowCount > 0) {
-    bar.style.width = `${340 + overflowCount * 34}px`;
+  if (overflowBlocks > 0) {
+    bar.style.width = `${340 + overflowBlocks * blockWidth}px`;
   }
 }
 
@@ -338,6 +363,7 @@ function clearErrors() {
 function markCurrentCardError() {
   const cardEls = [...document.querySelectorAll(".math-card")];
   const currentCard = cardEls[cardEls.length - 1];
+
   if (currentCard) {
     currentCard.classList.add("error");
   }
@@ -345,8 +371,7 @@ function markCurrentCardError() {
 
 function isSameEquation(one, two) {
   return (
-    (one.a === two.a && one.b === two.b) ||
-    (one.a === two.b && one.b === two.a)
+    one.a === two.a && one.b === two.b
   );
 }
 
@@ -359,19 +384,19 @@ submitBtn.addEventListener("click", () => {
 
   if (current.a === null || current.b === null) {
     markCurrentCardError();
-    showErrorPopup("You need to complete BOTH solutions to complete the problem.");
+    showErrorPopup("You need to complete BOTH numbers to complete the problem.");
     return;
   }
 
   const sum = current.a + current.b;
 
-  if (sum < 10) {
+  if (sum < targetNumber) {
     markCurrentCardError();
     showErrorPopup("Your solution is UNDER the sum!");
     return;
   }
 
-  if (sum > 10) {
+  if (sum > targetNumber) {
     markCurrentCardError();
     showErrorPopup("Your solution goes OVER the sum!");
     return;
@@ -392,10 +417,12 @@ submitBtn.addEventListener("click", () => {
   advanceAfterFullSet(current);
 });
 
-overlay.addEventListener("click", (event) => {
+overlay.addEventListener("click", event => {
   if (event.target === overlay) {
     if (!correctPopup.classList.contains("hidden")) {
       startSecondEquation();
+    } else if (!setCompletePopup.classList.contains("hidden")) {
+      continueToNextSet();
     } else {
       closeOverlay();
     }
@@ -403,34 +430,41 @@ overlay.addEventListener("click", (event) => {
 });
 
 document.querySelectorAll(".popup").forEach(popup => {
-  popup.addEventListener("click", (event) => {
+  popup.addEventListener("click", event => {
     event.stopPropagation();
   });
 });
 
 document.querySelectorAll(".x").forEach(button => {
-  button.addEventListener("click", (event) => {
+  button.addEventListener("click", event => {
     event.stopPropagation();
 
     if (!correctPopup.classList.contains("hidden")) {
       startSecondEquation();
+    } else if (!setCompletePopup.classList.contains("hidden")) {
+      continueToNextSet();
     } else {
       closeOverlay();
     }
   });
 });
 
-document.getElementById("welcomeStart").addEventListener("click", (event) => {
+document.getElementById("welcomeStart").addEventListener("click", event => {
   event.stopPropagation();
   closeOverlay();
 });
 
-document.getElementById("correctStart").addEventListener("click", (event) => {
+document.getElementById("correctStart").addEventListener("click", event => {
   event.stopPropagation();
   startSecondEquation();
 });
 
-window.addEventListener("keydown", (event) => {
+document.getElementById("continueSet").addEventListener("click", event => {
+  event.stopPropagation();
+  continueToNextSet();
+});
+
+window.addEventListener("keydown", event => {
   if (event.key === "Escape") {
     closeOverlay();
   }
