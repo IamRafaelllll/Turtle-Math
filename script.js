@@ -27,10 +27,11 @@ const sceneList = [
   "images/scene1.png",
   "images/scene2.png",
   "images/scene3.png",
+  "images/scene3.png",
   "images/scene5.png"
 ];
 
-const TOTAL_SETS = 3;
+const TOTAL_SETS = 4;
 
 let currentSet = 0;
 let phase = 1;
@@ -56,11 +57,9 @@ fitGame();
 
 function randomTarget() {
   const possibleTargets = [5, 6, 7, 8, 9, 10, 11, 12];
-  const availableTargets = possibleTargets.filter(num => !usedTargets.includes(num));
-
-  const chosen = availableTargets[Math.floor(Math.random() * availableTargets.length)];
+  const available = possibleTargets.filter(num => !usedTargets.includes(num));
+  const chosen = available[Math.floor(Math.random() * available.length)];
   usedTargets.push(chosen);
-
   return chosen;
 }
 
@@ -72,11 +71,11 @@ function showOnly(screen) {
 }
 
 function closeOverlay() {
-  if (overlay) overlay.classList.add("hidden");
-  if (welcomePopup) welcomePopup.classList.add("hidden");
-  if (correctPopup) correctPopup.classList.add("hidden");
-  if (errorPopup) errorPopup.classList.add("hidden");
-  if (setCompletePopup) setCompletePopup.classList.add("hidden");
+  overlay.classList.add("hidden");
+  welcomePopup.classList.add("hidden");
+  correctPopup.classList.add("hidden");
+  errorPopup.classList.add("hidden");
+  setCompletePopup.classList.add("hidden");
 }
 
 function goTitle() {
@@ -101,7 +100,6 @@ function restart(showWelcome = true) {
   currentSet = 0;
   allSets = [];
   usedTargets = [];
-
   resetCurrentSet();
 
   sceneArt.src = sceneList[0];
@@ -112,26 +110,18 @@ function restart(showWelcome = true) {
   keypad.classList.add("hidden");
   showOnly(playScreen);
 
-  if (showWelcome) {
-    showWelcomePopup();
-  }
+  if (showWelcome) showWelcomePopup();
 }
 
-const startGameButton = document.getElementById("startGame");
-if (startGameButton) {
-  startGameButton.addEventListener("click", () => {
-    restart(true);
-  });
-}
+document.getElementById("startGame").addEventListener("click", () => {
+  restart(true);
+});
 
 function updatePondProgress() {
   const left = TOTAL_SETS - currentSet;
-
-  if (left === 1) {
-    pondProgress.textContent = "1 set left to get to the pond!";
-  } else {
-    pondProgress.textContent = `${left} sets left to get to the pond!`;
-  }
+  pondProgress.textContent = left === 1
+    ? "1 set left to get to the pond!"
+    : `${left} sets left to get to the pond!`;
 }
 
 function showWelcomePopup() {
@@ -246,9 +236,7 @@ function makeCard(values, locked, answerIndex) {
   const card = document.createElement("div");
   card.className = "math-card";
 
-  if (locked) {
-    card.classList.add("solved");
-  }
+  if (locked) card.classList.add("solved");
 
   card.innerHTML = `
     <div class="eq">
@@ -265,9 +253,7 @@ function makeCard(values, locked, answerIndex) {
   paintBar(bar, values.a, values.b);
 
   if (locked) {
-    card.querySelectorAll(".input").forEach(btn => {
-      btn.disabled = true;
-    });
+    card.querySelectorAll(".input").forEach(btn => btn.disabled = true);
   } else {
     card.querySelectorAll(".input").forEach(btn => {
       btn.addEventListener("click", event => {
@@ -377,10 +363,7 @@ function clearErrors() {
 function markCurrentCardError() {
   const cardEls = [...document.querySelectorAll(".math-card")];
   const currentCard = cardEls[cardEls.length - 1];
-
-  if (currentCard) {
-    currentCard.classList.add("error");
-  }
+  if (currentCard) currentCard.classList.add("error");
 }
 
 function isSameEquation(one, two) {
@@ -442,9 +425,7 @@ overlay.addEventListener("click", event => {
 });
 
 document.querySelectorAll(".popup").forEach(popup => {
-  popup.addEventListener("click", event => {
-    event.stopPropagation();
-  });
+  popup.addEventListener("click", event => event.stopPropagation());
 });
 
 document.querySelectorAll(".x").forEach(button => {
@@ -477,7 +458,5 @@ document.getElementById("continueSet").addEventListener("click", event => {
 });
 
 window.addEventListener("keydown", event => {
-  if (event.key === "Escape") {
-    closeOverlay();
-  }
+  if (event.key === "Escape") closeOverlay();
 });
