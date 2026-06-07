@@ -33,6 +33,8 @@
 
       <img id="sceneArt" src="images/scene1.png" class="scene-art" alt="Turtle path" />
 
+      <p id="pondProgress" class="pond-progress">3 sets left to get to the pond!</p>
+
       <div id="cards" class="cards one-card"></div>
 
       <button id="submitBtn" class="submit">submit</button>
@@ -69,17 +71,16 @@
 
         <div class="summary">
           <b>summary:</b>
-          <p><span id="sum1"></span> = 10</p>
-          <p><span id="sum2"></span> = 10</p>
         </div>
 
         <p class="note">There can be multiple ways to make the same solution when doing math!</p>
-        <button class="play-again" onclick="restart()">Play Again?</button>
+        <button class="play-again" onclick="restart(true)">Play Again?</button>
       </div>
     </section>
 
-    <!-- POPUP OVERLAY -->
+    <!-- POPUPS -->
     <div id="overlay" class="overlay hidden">
+
       <div id="welcomePopup" class="popup welcome hidden">
         <button class="x">×</button>
         <h1>Welcome to TurtleMath!</h1>
@@ -88,7 +89,7 @@
           <li>Look at the total number you need to make.</li>
           <li>Think of one solution to make that sum.</li>
           <li>Think of a different solution to make the same sum.</li>
-          <li>Help Turtle Tim get back to his pond!</li>
+          <li>Complete 3 sets to help Turtle Tim reach the pond!</li>
         </ol>
         <button id="welcomeStart" class="popup-btn">Start Calculating!</button>
       </div>
@@ -96,15 +97,31 @@
       <div id="correctPopup" class="popup correct hidden">
         <button class="x">×</button>
         <h1>Correct!</h1>
+
         <div class="correct-equation">
           <span id="correctA" class="white-num"></span>
           <span>+</span>
           <span id="correctB" class="white-num"></span>
           <span>=</span>
-          <span>10</span>
+          <span id="correctTarget"></span>
         </div>
-        <p>Turtle Tim wants to see another way to make the same sum. Can you help him find a different set of numbers?</p>
-        <button id="correctStart" class="popup-btn">Start Calculating!</button>
+
+        <p>Great job! Now find another different way to make the same number.</p>
+        <button id="correctStart" class="popup-btn">Find Another Way!</button>
+      </div>
+
+      <div id="setCompletePopup" class="popup set-complete hidden">
+        <button class="x">×</button>
+        <h1>Great job!</h1>
+        <p>You found two different ways to make the number.</p>
+
+        <div class="set-summary">
+          <p id="setLine1"></p>
+          <p id="setLine2"></p>
+        </div>
+
+        <p>Continue to the next problems to help Turtle Tim get closer to the pond!</p>
+        <button id="continueSet" class="popup-btn">Continue to Next Problems!</button>
       </div>
 
       <div id="errorPopup" class="popup error-box hidden">
@@ -115,6 +132,7 @@
           <p id="errorMessage"></p>
         </div>
       </div>
+
     </div>
 
   </main>
