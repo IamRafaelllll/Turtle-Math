@@ -36,6 +36,7 @@ let currentSet = 0;
 let phase = 1;
 let selected = null;
 let targetNumber = 10;
+let usedTargets = [];
 
 let currentAnswers = [
   { a: null, b: null },
@@ -54,7 +55,13 @@ window.addEventListener("resize", fitGame);
 fitGame();
 
 function randomTarget() {
-  return Math.floor(Math.random() * 8) + 5;
+  const possibleTargets = [5, 6, 7, 8, 9, 10, 11, 12];
+  const availableTargets = possibleTargets.filter(num => !usedTargets.includes(num));
+
+  const chosen = availableTargets[Math.floor(Math.random() * availableTargets.length)];
+  usedTargets.push(chosen);
+
+  return chosen;
 }
 
 function showOnly(screen) {
@@ -93,6 +100,8 @@ function resetCurrentSet() {
 function restart(showWelcome = true) {
   currentSet = 0;
   allSets = [];
+  usedTargets = [];
+
   resetCurrentSet();
 
   sceneArt.src = sceneList[0];
