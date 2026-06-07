@@ -248,15 +248,19 @@ body {
 }
 
 .block.green {
-  background: #237622;
+  background: #2b7e21;
 }
 
 .block.brown {
-  background: #c29161;
+  background: #8b5a32;
+}
+
+.block.empty {
+  background: #d8c8b4;
 }
 
 .block.red {
-  background: red;
+  background: #ff1d17;
 }
 
 .submit {
@@ -467,43 +471,57 @@ body {
 /* END SCREEN */
 .end-scene {
   position: absolute;
-  width: 760px;
-  left: 120px;
-  top: 130px;
+  width: 420px;
+  left: 110px;
+  top: 145px;
 }
 
 .end-panel {
   position: absolute;
-  right: 80px;
-  top: 150px;
-  width: 360px;
+  right: 55px;
+  top: 120px;
+  width: 390px;
   text-align: center;
 }
 
 .end-panel h1 {
-  font-size: 50px;
-  margin: 0 0 8px;
+  font-size: 36px;
+  margin: 0 0 10px;
+  line-height: 1.05;
 }
 
 .end-panel p {
-  font-size: 16px;
+  font-size: 14px;
+  margin: 6px 0;
 }
 
 .summary {
-  background: #c9f5c9;
-  border-radius: 16px;
-  padding: 20px;
-  margin: 25px 0;
+  background: #c9f0c2;
+  border-radius: 18px;
+  padding: 18px 18px 8px;
+  margin: 22px 0;
   box-shadow: 0 4px 5px rgba(0, 0, 0, 0.15);
+  text-align: left;
+}
+
+.summary b {
+  display: block;
+  text-align: center;
+  font-size: 16px;
+  margin-bottom: 10px;
 }
 
 .summary p {
-  font-size: 22px;
+  font-size: 15px;
   font-weight: 700;
+  margin: 10px 0;
+  line-height: 1.2;
 }
 
 .note {
-  font-size: 15px;
+  font-size: 14px;
+  line-height: 1.25;
+  margin: 14px 0 18px;
 }
 
 .play-again {
@@ -512,4 +530,5 @@ body {
   border-radius: 25px;
   padding: 12px 34px;
   cursor: pointer;
+  font-size: 16px;
 }
