@@ -12,9 +12,9 @@ const overlay = document.getElementById("overlay");
 const welcomePopup = document.getElementById("welcomePopup");
 const correctPopup = document.getElementById("correctPopup");
 const errorPopup = document.getElementById("errorPopup");
-const errorMessage = document.getElementById("errorMessage");
-
 const setCompletePopup = document.getElementById("setCompletePopup");
+
+const errorMessage = document.getElementById("errorMessage");
 const pondProgress = document.getElementById("pondProgress");
 const setLine1 = document.getElementById("setLine1");
 const setLine2 = document.getElementById("setLine2");
@@ -98,6 +98,7 @@ function restart(showWelcome = true) {
   sceneArt.src = sceneList[0];
   renderCards();
   updatePondProgress();
+
   closeOverlay();
   keypad.classList.add("hidden");
   showOnly(playScreen);
@@ -370,9 +371,7 @@ function markCurrentCardError() {
 }
 
 function isSameEquation(one, two) {
-  return (
-    one.a === two.a && one.b === two.b
-  );
+  return one.a === two.a && one.b === two.b;
 }
 
 submitBtn.addEventListener("click", () => {
