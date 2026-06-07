@@ -1,599 +1,462 @@
-* {
-  box-sizing: border-box;
-}
-
-html,
-body {
-  margin: 0;
-  width: 100%;
-  height: 100%;
-  background: #333;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-#game {
-  width: 1024px;
-  height: 650px;
-  position: relative;
-  overflow: hidden;
-  background: linear-gradient(120deg, #ffffff 0%, #dffcff 45%, #adf8ff 100%);
-  transform: scale(var(--scale, 1));
-  transform-origin: center center;
-}
-
-.screen {
-  display: none;
-  position: absolute;
-  inset: 0;
-}
-
-.screen.active {
-  display: block;
-}
-
-.hidden {
-  display: none !important;
-}
-
-/* DECOR */
-.bg-decor {
-  position: absolute;
-  color: rgba(255, 255, 255, 0.65);
-  font-weight: 900;
-  user-select: none;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.plus {
-  font-size: 86px;
-}
+const game = document.getElementById("game");
+const titleScreen = document.getElementById("titleScreen");
+const playScreen = document.getElementById("playScreen");
+const endScreen = document.getElementById("endScreen");
+
+const sceneArt = document.getElementById("sceneArt");
+const cards = document.getElementById("cards");
+const keypad = document.getElementById("keypad");
+const submitBtn = document.getElementById("submitBtn");
+
+const overlay = document.getElementById("overlay");
+const welcomePopup = document.getElementById("welcomePopup");
+const correctPopup = document.getElementById("correctPopup");
+const errorPopup = document.getElementById("errorPopup");
+const setCompletePopup = document.getElementById("setCompletePopup");
 
-.equals {
-  font-size: 62px;
-}
-
-.plus-a {
-  left: 50px;
-  top: 410px;
-  transform: rotate(-28deg);
-}
+const errorMessage = document.getElementById("errorMessage");
+const pondProgress = document.getElementById("pondProgress");
+const setLine1 = document.getElementById("setLine1");
+const setLine2 = document.getElementById("setLine2");
 
-.plus-b {
-  right: 70px;
-  bottom: 105px;
-  transform: rotate(18deg);
-  font-size: 100px;
-}
+const correctA = document.getElementById("correctA");
+const correctB = document.getElementById("correctB");
+const correctTarget = document.getElementById("correctTarget");
+
+const sceneList = [
+  "images/scene1.png",
+  "images/scene2.png",
+  "images/scene3.png",
+  "images/scene3.png",
+  "images/scene5.png"
+];
+
+const TOTAL_SETS = 4;
 
-.plus-c {
-  right: 210px;
-  top: 130px;
-  transform: rotate(-15deg);
-  font-size: 58px;
-  opacity: 0.45;
-}
+let currentSet = 0;
+let phase = 1;
+let selected = null;
+let targetNumber = 10;
+let usedTargets = [];
 
-.plus-d {
-  left: 320px;
-  top: 150px;
-  transform: rotate(22deg);
-  font-size: 54px;
-  opacity: 0.38;
-}
+let currentAnswers = [
+  { a: null, b: null },
+  { a: null, b: null }
+];
+
+let firstSolution = null;
+let allSets = [];
 
-.eq-a {
-  left: 90px;
-  top: 500px;
+function fitGame() {
+  const scale = Math.min(window.innerWidth / 1024, window.innerHeight / 650, 1);
+  game.style.setProperty("--scale", scale);
 }
+
+window.addEventListener("resize", fitGame);
+fitGame();
 
-.eq-b {
-  right: 120px;
-  top: 485px;
-  opacity: 0.45;
+function randomTarget() {
+  const possibleTargets = [5, 6, 7, 8, 9, 10, 11, 12];
+  const available = possibleTargets.filter(num => !usedTargets.includes(num));
+  const chosen = available[Math.floor(Math.random() * available.length)];
+  usedTargets.push(chosen);
+  return chosen;
 }
 
-/* START */
-.title-wrap {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+function showOnly(screen) {
+  titleScreen.classList.remove("active");
+  playScreen.classList.remove("active");
+  endScreen.classList.remove("active");
+  screen.classList.add("active");
 }
 
-.title-turtle {
-  width: 270px;
-  margin-bottom: 8px;
+function closeOverlay() {
+  overlay.classList.add("hidden");
+  welcomePopup.classList.add("hidden");
+  correctPopup.classList.add("hidden");
+  errorPopup.classList.add("hidden");
+  setCompletePopup.classList.add("hidden");
 }
 
-.title-wrap h1 {
-  margin: 0 0 26px;
-  font-size: 48px;
-  font-weight: 900;
-  color: #000;
-  text-shadow:
-    -3px -3px 0 white,
-    3px -3px 0 white,
-    -3px 3px 0 white,
-    3px 3px 0 white,
-    0 4px 4px rgba(0, 0, 0, 0.25);
+function goTitle() {
+  closeOverlay();
+  keypad.classList.add("hidden");
+  showOnly(titleScreen);
 }
 
-.play-now {
-  border: 3px solid #8b63c7;
-  background: #dffaff;
-  border-radius: 30px;
-  padding: 13px 44px;
-  font-size: 24px;
-  font-weight: 900;
-  color: white;
-  text-shadow:
-    -1px -1px 0 #000,
-    1px -1px 0 #000,
-    -1px 1px 0 #000,
-    1px 1px 0 #000;
-  cursor: pointer;
-}
+function resetCurrentSet() {
+  phase = 1;
+  selected = null;
+  firstSolution = null;
+  targetNumber = randomTarget();
 
-/* GAME */
-.back-btn {
-  position: absolute;
-  left: 22px;
-  top: 20px;
-  z-index: 5;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 2px solid #8b63c7;
-  background: white;
-  color: black;
-  font-size: 28px;
-  line-height: 18px;
-  cursor: pointer;
+  currentAnswers = [
+    { a: null, b: null },
+    { a: null, b: null }
+  ];
 }
 
-.game-title {
-  position: absolute;
-  top: 28px;
-  left: 0;
-  right: 0;
-  text-align: center;
-  margin: 0;
-  z-index: 3;
-  font-size: 28px;
-  font-weight: 900;
-  color: #111;
-  text-shadow:
-    -2px -2px 0 white,
-    2px -2px 0 white,
-    -2px 2px 0 white,
-    2px 2px 0 white;
-}
+function restart(showWelcome = true) {
+  currentSet = 0;
+  allSets = [];
+  usedTargets = [];
+  resetCurrentSet();
 
-.scene-art {
-  position: absolute;
-  width: 735px;
-  left: 145px;
-  top: 92px;
-  z-index: 2;
-  pointer-events: none;
-  object-fit: contain;
-}
+  sceneArt.src = sceneList[0];
+  renderCards();
+  updatePondProgress();
 
-.pond-progress {
-  position: absolute;
-  right: 70px;
-  top: 262px;
-  width: 315px;
-  text-align: center;
-  z-index: 5;
-  font-size: 17px;
-  font-weight: 900;
-  color: #111;
-  text-shadow:
-    -2px -2px 0 white,
-    2px -2px 0 white,
-    -2px 2px 0 white,
-    2px 2px 0 white;
-}
+  closeOverlay();
+  keypad.classList.add("hidden");
+  showOnly(playScreen);
 
-.cards {
-  position: absolute;
-  left: 265px;
-  width: 440px;
-  z-index: 4;
+  if (showWelcome) showWelcomePopup();
 }
 
-.cards.one-card {
-  top: 305px;
-}
+document.getElementById("startGame").addEventListener("click", () => {
+  restart(true);
+});
 
-.cards.two-cards {
-  top: 222px;
+function updatePondProgress() {
+  const left = TOTAL_SETS - currentSet;
+  pondProgress.textContent = left === 1
+    ? "1 set left to get to the pond!"
+    : `${left} sets left to get to the pond!`;
 }
 
-.math-card {
-  width: 440px;
-  height: 138px;
-  margin-bottom: 15px;
-  position: relative;
-  background: #79d982;
-  border-radius: 18px;
-  box-shadow: 0 7px 6px rgba(0, 0, 0, 0.25);
-  border: 0;
-  overflow: visible;
+function showWelcomePopup() {
+  overlay.classList.remove("hidden");
+  welcomePopup.classList.remove("hidden");
+  correctPopup.classList.add("hidden");
+  errorPopup.classList.add("hidden");
+  setCompletePopup.classList.add("hidden");
 }
 
-.math-card.solved {
-  border: 4px solid #00c91a;
-}
+function showCorrectPopup(a, b) {
+  correctA.textContent = a;
+  correctB.textContent = b;
+  correctTarget.textContent = targetNumber;
 
-.math-card.error {
-  border: 4px solid red;
+  overlay.classList.remove("hidden");
+  welcomePopup.classList.add("hidden");
+  correctPopup.classList.remove("hidden");
+  errorPopup.classList.add("hidden");
+  setCompletePopup.classList.add("hidden");
 }
 
-.eq {
-  position: absolute;
-  top: 25px;
-  left: 48px;
-  right: 48px;
-  display: grid;
-  grid-template-columns: 54px 38px 54px 38px 72px;
-  align-items: center;
-  justify-items: center;
-  font-size: 30px;
-  font-weight: 900;
-}
+function showErrorPopup(message) {
+  errorMessage.textContent = message;
 
-.num-box {
-  width: 52px;
-  height: 44px;
-  border-radius: 6px;
-  border: 0;
-  background: white;
-  font-size: 28px;
-  font-weight: 900;
-  color: black;
-  cursor: pointer;
+  overlay.classList.remove("hidden");
+  welcomePopup.classList.add("hidden");
+  correctPopup.classList.add("hidden");
+  errorPopup.classList.remove("hidden");
+  setCompletePopup.classList.add("hidden");
 }
 
-.num-box:disabled {
-  cursor: default;
-  opacity: 1;
-}
+function showSetCompletePopup(first, second) {
+  setLine1.textContent = `${first.a} + ${first.b} = ${targetNumber}`;
+  setLine2.textContent = `${second.a} + ${second.b} = ${targetNumber}`;
 
-.bar {
-  position: absolute;
-  left: 60px;
-  bottom: 26px;
-  width: 320px;
-  height: 30px;
-  display: flex;
-  border: 3px solid black;
-  border-radius: 7px;
-  overflow: hidden;
-  background: #d8c8b4;
+  overlay.classList.remove("hidden");
+  welcomePopup.classList.add("hidden");
+  correctPopup.classList.add("hidden");
+  errorPopup.classList.add("hidden");
+  setCompletePopup.classList.remove("hidden");
 }
 
-.block {
-  height: 100%;
-  border-right: 2px solid black;
-  flex-shrink: 0;
+function startSecondEquation() {
+  closeOverlay();
+  phase = 2;
+  selected = null;
+  currentAnswers[1] = { a: null, b: null };
+  renderCards();
 }
 
-.block:last-child {
-  border-right: 0;
-}
+function advanceAfterFullSet(secondSolution) {
+  const completedSet = {
+    target: targetNumber,
+    first: { ...firstSolution },
+    second: { ...secondSolution }
+  };
 
-.block.green {
-  background: #2b7e21;
-}
+  allSets.push(completedSet);
+  currentSet += 1;
 
-.block.brown {
-  background: #8b5a32;
-}
+  if (currentSet >= TOTAL_SETS) {
+    showEndScreen();
+    return;
+  }
 
-.block.empty {
-  background: #d8c8b4;
+  showSetCompletePopup(completedSet.first, completedSet.second);
 }
 
-.block.red {
-  background: #ff1d17;
-}
+function continueToNextSet() {
+  closeOverlay();
+  resetCurrentSet();
 
-.submit {
-  position: absolute;
-  left: 765px;
-  top: 372px;
-  z-index: 20;
-  width: 110px;
-  height: 50px;
-  border: 0;
-  border-radius: 16px;
-  background: #3d92cc;
-  color: white;
-  font-size: 18px;
-  font-weight: 900;
-  text-shadow:
-    -1px -1px 0 #000,
-    1px -1px 0 #000,
-    -1px 1px 0 #000,
-    1px 1px 0 #000;
-  box-shadow: 0 4px 0 #8e6bb1;
-  cursor: pointer;
+  sceneArt.src = sceneList[currentSet];
+  renderCards();
+  updatePondProgress();
 }
 
-/* KEYPAD */
-.keypad {
-  position: absolute;
-  left: 80px;
-  top: 330px;
-  width: 120px;
-  z-index: 80;
-}
+function showEndScreen() {
+  closeOverlay();
+  showOnly(endScreen);
 
-.keypad img {
-  width: 120px;
-  display: block;
-  pointer-events: none;
-}
+  const summary = document.querySelector(".summary");
+  summary.innerHTML = `<b>summary:</b>`;
 
-.key-hit {
-  position: absolute;
-  width: 32px;
-  height: 32px;
-  background: transparent;
-  border: 0;
-  cursor: pointer;
+  allSets.forEach((set, index) => {
+    const line = document.createElement("p");
+    line.innerHTML = `
+      <strong>Set ${index + 1} — Goal: ${set.target}</strong>
+      <br>
+      ${set.first.a} + ${set.first.b} = ${set.target}
+      <br>
+      ${set.second.a} + ${set.second.b} = ${set.target}
+    `;
+    summary.appendChild(line);
+  });
 }
-
-.key-hit[data-num="1"] { left: 20px; top: 17px; }
-.key-hit[data-num="2"] { left: 55px; top: 17px; }
-.key-hit[data-num="3"] { left: 88px; top: 17px; }
-
-.key-hit[data-num="4"] { left: 20px; top: 55px; }
-.key-hit[data-num="5"] { left: 55px; top: 55px; }
-.key-hit[data-num="6"] { left: 88px; top: 55px; }
 
-.key-hit[data-num="7"] { left: 20px; top: 93px; }
-.key-hit[data-num="8"] { left: 55px; top: 93px; }
-.key-hit[data-num="9"] { left: 88px; top: 93px; }
+function renderCards() {
+  cards.innerHTML = "";
+  cards.className = phase === 1 ? "cards one-card" : "cards two-cards";
 
-.key-hit.zero {
-  left: 55px;
-  top: 132px;
-}
-
-/* POPUPS */
-.overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 100;
-  background: rgba(0, 0, 0, 0.48);
-  display: grid;
-  place-items: center;
-}
+  if (phase === 2 && firstSolution) {
+    cards.appendChild(makeCard(firstSolution, true, -1));
+  }
 
-.popup {
-  position: relative;
-  cursor: default;
-  z-index: 110;
+  const liveIndex = phase === 1 ? 0 : 1;
+  cards.appendChild(makeCard(currentAnswers[liveIndex], false, liveIndex));
 }
 
-.x {
-  position: absolute;
-  top: 20px;
-  right: 26px;
-  width: 43px;
-  height: 43px;
-  border: 3px solid #8b63c7;
-  border-radius: 50%;
-  background: transparent;
-  font-size: 30px;
-  line-height: 34px;
-  cursor: pointer;
-}
+function makeCard(values, locked, answerIndex) {
+  const card = document.createElement("div");
+  card.className = "math-card";
 
-.welcome,
-.correct,
-.set-complete {
-  width: 760px;
-  min-height: 430px;
-  border-radius: 30px;
-  background: linear-gradient(180deg, #81df87 0%, #f1fff5 100%);
-  box-shadow: 0 8px 0 rgba(0, 0, 0, 0.25);
-  text-align: center;
-  padding: 48px 70px 34px;
-}
+  if (locked) card.classList.add("solved");
 
-.welcome h1,
-.correct h1,
-.set-complete h1 {
-  margin: 0 0 24px;
-  font-size: 54px;
-  color: black;
-  text-shadow:
-    -4px -4px 0 white,
-    4px -4px 0 white,
-    -4px 4px 0 white,
-    4px 4px 0 white;
-}
+  card.innerHTML = `
+    <div class="eq">
+      <button class="num-box input" data-answer="${answerIndex}" data-slot="a">${values.a ?? "#"}</button>
+      <span>+</span>
+      <button class="num-box input" data-answer="${answerIndex}" data-slot="b">${values.b ?? "#"}</button>
+      <span>=</span>
+      <span class="target">${targetNumber}</span>
+    </div>
+    <div class="bar"></div>
+  `;
 
-.welcome p,
-.welcome li {
-  font-size: 18px;
-  text-align: left;
-}
+  const bar = card.querySelector(".bar");
+  paintBar(bar, values.a, values.b);
 
-.welcome ol {
-  width: 540px;
-  margin: 18px auto 26px;
-}
+  if (locked) {
+    card.querySelectorAll(".input").forEach(btn => btn.disabled = true);
+  } else {
+    card.querySelectorAll(".input").forEach(btn => {
+      btn.addEventListener("click", event => {
+        event.stopPropagation();
 
-.correct-equation {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 45px;
-  font-size: 54px;
-  margin-bottom: 30px;
-}
+        selected = {
+          answerIndex: Number(btn.dataset.answer),
+          slot: btn.dataset.slot,
+          button: btn
+        };
 
-.white-num {
-  background: white;
-  border-radius: 8px;
-  width: 78px;
-  height: 68px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
+        positionKeypad(btn);
+        keypad.classList.remove("hidden");
+      });
+    });
+  }
 
-.correct p,
-.set-complete p {
-  font-size: 22px;
-  line-height: 1.15;
-  margin: 0 auto 34px;
-  max-width: 650px;
+  return card;
 }
 
-.set-summary {
-  background: #c9f0c2;
-  border-radius: 18px;
-  padding: 18px;
-  margin: 22px auto;
-  width: 430px;
-  box-shadow: 0 4px 5px rgba(0, 0, 0, 0.15);
-}
+function positionKeypad(button) {
+  const gameRect = game.getBoundingClientRect();
+  const btnRect = button.getBoundingClientRect();
+  const scale = Number(getComputedStyle(game).getPropertyValue("--scale")) || 1;
 
-.set-summary p {
-  font-size: 28px;
-  font-weight: 900;
-  margin: 8px 0;
-}
+  let x = (btnRect.left - gameRect.left) / scale - 110;
+  let y = (btnRect.top - gameRect.top) / scale + 35;
 
-.popup-btn {
-  border: 3px solid #8b63c7;
-  background: #dffaff;
-  border-radius: 28px;
-  padding: 13px 38px;
-  min-width: 250px;
-  font-size: 21px;
-  font-weight: 900;
-  color: white;
-  text-shadow:
-    -1px -1px 0 #000,
-    1px -1px 0 #000,
-    -1px 1px 0 #000,
-    1px 1px 0 #000;
-  cursor: pointer;
-}
+  x = Math.max(20, Math.min(860, x));
+  y = Math.max(100, Math.min(470, y));
 
-.error-box {
-  width: 560px;
-  min-height: 260px;
-  border-radius: 90px 35px 90px 0;
-  background: linear-gradient(135deg, #e9ffff, #83e1d1);
-  box-shadow: 0 8px 0 rgba(0, 0, 0, 0.25);
-  border: 3px solid #a2c4db;
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  padding: 45px 55px 35px 25px;
+  keypad.style.left = `${x}px`;
+  keypad.style.top = `${y}px`;
 }
 
-.error-box img {
-  width: 180px;
-  margin-left: -70px;
-}
+document.querySelectorAll(".key-hit").forEach(key => {
+  key.addEventListener("click", event => {
+    event.stopPropagation();
 
-.error-box h1 {
-  margin: 0 0 18px;
-  font-size: 58px;
-  color: black;
-  text-shadow:
-    -4px -4px 0 white,
-    4px -4px 0 white,
-    -4px 4px 0 white,
-    4px 4px 0 white;
-}
+    if (!selected) return;
 
-.error-box p {
-  margin: 0;
-  font-size: 28px;
-  line-height: 1.1;
-}
+    const num = Number(key.dataset.num);
+    currentAnswers[selected.answerIndex][selected.slot] = num;
+    selected.button.textContent = num;
 
-/* END SCREEN */
-.end-scene {
-  position: absolute;
-  width: 520px;
-  left: 70px;
-  top: 150px;
-  z-index: 2;
-}
+    keypad.classList.add("hidden");
+    rerenderBarsOnly();
+  });
+});
 
-.end-panel {
-  position: absolute;
-  right: 55px;
-  top: 115px;
-  width: 390px;
-  text-align: center;
-  z-index: 5;
-}
+document.addEventListener("click", event => {
+  if (!keypad.classList.contains("hidden") && !keypad.contains(event.target)) {
+    keypad.classList.add("hidden");
+  }
+});
 
-.end-panel h1 {
-  font-size: 42px;
-  margin: 0 0 8px;
-  line-height: 1.05;
-}
+function rerenderBarsOnly() {
+  const cardEls = [...document.querySelectorAll(".math-card")];
 
-.end-panel p {
-  font-size: 15px;
-  margin: 6px 0;
+  if (phase === 1) {
+    paintBar(cardEls[0].querySelector(".bar"), currentAnswers[0].a, currentAnswers[0].b);
+  } else {
+    paintBar(cardEls[0].querySelector(".bar"), firstSolution.a, firstSolution.b);
+    paintBar(cardEls[1].querySelector(".bar"), currentAnswers[1].a, currentAnswers[1].b);
+  }
 }
 
-.summary {
-  background: #c9f0c2;
-  border-radius: 18px;
-  padding: 16px 18px 10px;
-  margin: 18px 0;
-  box-shadow: 0 4px 5px rgba(0, 0, 0, 0.15);
-  text-align: left;
-  max-height: 250px;
-  overflow-y: auto;
-}
+function paintBar(bar, a, b) {
+  bar.innerHTML = "";
+  bar.style.width = "320px";
 
-.summary b {
-  display: block;
-  text-align: center;
-  font-size: 18px;
-  margin-bottom: 10px;
-}
+  const first = Number.isInteger(a) ? a : 0;
+  const second = Number.isInteger(b) ? b : 0;
+  const total = first + second;
 
-.summary p {
-  font-size: 14px;
-  font-weight: 700;
-  margin: 9px 0 12px;
-  line-height: 1.25;
-}
+  const maxBlocks = targetNumber;
+  const firstBlocks = Math.min(first, maxBlocks);
+  const secondBlocks = Math.min(second, Math.max(maxBlocks - firstBlocks, 0));
+  const emptyBlocks = Math.max(maxBlocks - firstBlocks - secondBlocks, 0);
+  const overflowBlocks = Math.max(total - maxBlocks, 0);
 
-.note {
-  font-size: 14px;
-  line-height: 1.25;
-  margin: 12px 0 16px;
-}
+  const blockWidth = 320 / maxBlocks;
 
-.play-again {
-  border: 2px solid #8b63c7;
-  background: #dffaff;
-  border-radius: 25px;
-  padding: 12px 34px;
-  cursor: pointer;
-  font-size: 16px;
-}
+  function addBlock(colorClass) {
+    const block = document.createElement("div");
+    block.className = `block ${colorClass}`;
+    block.style.width = `${blockWidth}px`;
+    bar.appendChild(block);
+  }
+
+  for (let i = 0; i < firstBlocks; i++) addBlock("green");
+  for (let i = 0; i < secondBlocks; i++) addBlock("brown");
+  for (let i = 0; i < emptyBlocks; i++) addBlock("empty");
+  for (let i = 0; i < overflowBlocks; i++) addBlock("red");
+
+  if (overflowBlocks > 0) {
+    bar.style.width = `${320 + overflowBlocks * blockWidth}px`;
+  }
+}
+
+function clearErrors() {
+  document.querySelectorAll(".math-card").forEach(card => {
+    card.classList.remove("error");
+  });
+}
+
+function markCurrentCardError() {
+  const cardEls = [...document.querySelectorAll(".math-card")];
+  const currentCard = cardEls[cardEls.length - 1];
+  if (currentCard) currentCard.classList.add("error");
+}
+
+function isSameEquation(one, two) {
+  return one.a === two.a && one.b === two.b;
+}
+
+submitBtn.addEventListener("click", () => {
+  keypad.classList.add("hidden");
+  clearErrors();
+
+  const answerIndex = phase === 1 ? 0 : 1;
+  const current = currentAnswers[answerIndex];
+
+  if (current.a === null || current.b === null) {
+    markCurrentCardError();
+    showErrorPopup("You need to complete BOTH numbers to complete the problem.");
+    return;
+  }
+
+  const sum = current.a + current.b;
+
+  if (sum < targetNumber) {
+    markCurrentCardError();
+    showErrorPopup("Your solution is UNDER the sum!");
+    return;
+  }
+
+  if (sum > targetNumber) {
+    markCurrentCardError();
+    showErrorPopup("Your solution goes OVER the sum!");
+    return;
+  }
+
+  if (phase === 1) {
+    firstSolution = { ...current };
+    showCorrectPopup(current.a, current.b);
+    return;
+  }
+
+  if (isSameEquation(current, firstSolution)) {
+    markCurrentCardError();
+    showErrorPopup("Your second equation must be DIFFERENT from the first one.");
+    return;
+  }
+
+  advanceAfterFullSet(current);
+});
+
+overlay.addEventListener("click", event => {
+  if (event.target === overlay) {
+    if (!correctPopup.classList.contains("hidden")) {
+      startSecondEquation();
+    } else if (!setCompletePopup.classList.contains("hidden")) {
+      continueToNextSet();
+    } else {
+      closeOverlay();
+    }
+  }
+});
+
+document.querySelectorAll(".popup").forEach(popup => {
+  popup.addEventListener("click", event => event.stopPropagation());
+});
+
+document.querySelectorAll(".x").forEach(button => {
+  button.addEventListener("click", event => {
+    event.stopPropagation();
+
+    if (!correctPopup.classList.contains("hidden")) {
+      startSecondEquation();
+    } else if (!setCompletePopup.classList.contains("hidden")) {
+      continueToNextSet();
+    } else {
+      closeOverlay();
+    }
+  });
+});
+
+document.getElementById("welcomeStart").addEventListener("click", event => {
+  event.stopPropagation();
+  closeOverlay();
+});
+
+document.getElementById("correctStart").addEventListener("click", event => {
+  event.stopPropagation();
+  startSecondEquation();
+});
+
+document.getElementById("continueSet").addEventListener("click", event => {
+  event.stopPropagation();
+  continueToNextSet();
+});
+
+window.addEventListener("keydown", event => {
+  if (event.key === "Escape") closeOverlay();
+});
