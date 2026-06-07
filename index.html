@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TurtleMath</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main id="game">
+    <section id="titleScreen" class="screen active">
+      <div class="bg-decor plus left">+</div>
+      <div class="bg-decor plus right">+</div>
+      <div class="bg-decor equals left-eq">=</div>
+      <div class="bg-decor equals right-eq">=</div>
+      <img src="images/turtle-title.png" class="title-turtle" alt="Turtle" />
+      <img src="images/logo.png" class="title-logo" alt="TurtleMath" />
+      <button id="startGame" class="invisible full-click" aria-label="Start game"></button>
+    </section>
+
+    <section id="playScreen" class="screen">
+      <div class="bg-decor plus left">+</div>
+      <div class="bg-decor plus right">+</div>
+      <div class="bg-decor equals left-eq">=</div>
+      <div class="bg-decor equals right-eq">=</div>
+      <button class="back-btn" onclick="goTitle()">‹</button>
+      <img src="images/logo.png" class="game-logo" alt="TurtleMath" />
+      <img id="sceneArt" src="images/scene1.png" class="scene-art" alt="Turtle path" />
+
+      <div id="cards" class="cards one-card">
+        <div class="math-card" data-index="0">
+          <div class="eq">
+            <button class="num-box input" data-card="0" data-slot="a">#</button>
+            <span>+</span>
+            <button class="num-box input" data-card="0" data-slot="b">#</button>
+            <span>=</span>
+            <span class="target">10</span>
+          </div>
+          <div class="bar" data-filled="0"></div>
+        </div>
+      </div>
+
+      <button id="submitBtn" class="submit">submit</button>
+
+      <div id="keypad" class="keypad hidden">
+        <img src="images/keypad.png" alt="Number keypad" />
+        <div class="key-hit" data-num="1"></div><div class="key-hit" data-num="2"></div><div class="key-hit" data-num="3"></div>
+        <div class="key-hit" data-num="4"></div><div class="key-hit" data-num="5"></div><div class="key-hit" data-num="6"></div>
+        <div class="key-hit" data-num="7"></div><div class="key-hit" data-num="8"></div><div class="key-hit" data-num="9"></div>
+        <div class="key-hit zero" data-num="0"></div>
+      </div>
+    </section>
+
+    <div id="overlay" class="overlay hidden">
+      <div id="welcomePopup" class="popup welcome hidden">
+        <button class="x" id="welcomeX">×</button>
+        <h1>Welcome to TurtleMath!</h1>
+        <p>Oh no! Turtle Tim lost his way back home and he needs your help calculating his way back!</p>
+        <ol>
+          <li>Look at the total number you need to make.</li>
+          <li>Think of one solution to make that sum.</li>
+          <li>Think of a different solution to make the same sum.</li>
+          <li>Help Turtle Tim get back to his pond!</li>
+        </ol>
+        <button class="start-calc" id="welcomeStart">Start Calculating!</button>
+      </div>
+      <div id="correctPopup" class="correct-popup hidden">
+        <button class="x" id="correctX">×</button>
+        <h1>Correct!</h1>
+        <div class="correct-equation">
+          <span id="correctA" class="white-num">4</span>
+          <span>+</span>
+          <span id="correctB" class="white-num">6</span>
+          <span>=</span>
+          <span>10</span>
+        </div>
+        <p>Turtle Tim wants to see if theres another way he can make the same solution. Can you help him find another set of numbers that adds to the same sum?</p>
+        <button class="start-calc" id="correctStart">Start Calculating!</button>
+      </div>
+      <img id="imagePopup" class="image-popup hidden" alt="feedback" />
+      <button id="popupClose" class="popup-close hidden" >×</button>
+    </div>
+
+    <section id="endScreen" class="screen">
+      <div class="bg-decor plus left">+</div>
+      <div class="bg-decor plus right">+</div>
+      <div class="bg-decor equals left-eq">=</div>
+      <div class="bg-decor equals right-eq">=</div>
+      <button class="back-btn" onclick="goTitle()">‹</button>
+      <img src="images/logo.png" class="game-logo" alt="TurtleMath" />
+      <img src="images/scene5.png" class="end-scene" alt="Turtle home" />
+      <div class="end-panel">
+        <h1>You did it!!</h1>
+        <p>You helped Turtle Tim make it back home.</p>
+        <div class="summary">
+          <b>summary:</b>
+          <p><span id="sum1">4 + 6</span> and <span id="sum2">2 + 8</span> = 10</p>
+          <p><span id="sum3">4 + 6</span> and <span id="sum4">2 + 8</span> = 10</p>
+        </div>
+        <p class="note">there can be multiple ways to make the same solution when doing math!</p>
+        <button class="play-again" onclick="restart()">Play Again?</button>
+      </div>
+    </section>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>
